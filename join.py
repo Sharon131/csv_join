@@ -63,21 +63,22 @@ def inner_join(filename1, filename2, column_name, nrows=50):
     iter1 = 0
     iter2 = 0
 
-    print_header(df1.columns.to_list(), df2.columns.to_list(), column_name)
-    while not df1.empty:
-        while not df2.empty:
-            for i, row1 in df1.iterrows():
-                for j, row2 in df2.iterrows():
-                    if row1[column_name] == row2[column_name]:
-                        print_joined(row1, row2, columns1, columns2, column_name)
-            iter2 += 1
-            df2 = pandas.read_csv(filename2, nrows=nrows, skiprows=nrows * iter2 + 1, names=columns2)
-        iter2 = 0
-        iter1 += 1
-        df1 = pandas.read_csv(filename1, nrows=nrows, skiprows=nrows * iter1 + 1, names=columns1)
-        df2 = pandas.read_csv(filename2, nrows=nrows)
-
-    print("-----")
+    if df1.columns.to_list().__contains__(column_name) and df2.columns.to_list().__contains__(column_name):
+        print_header(df1.columns.to_list(), df2.columns.to_list(), column_name)
+        while not df1.empty:
+            while not df2.empty:
+                for i, row1 in df1.iterrows():
+                    for j, row2 in df2.iterrows():
+                        if row1[column_name] == row2[column_name]:
+                            print_joined(row1, row2, columns1, columns2, column_name)
+                iter2 += 1
+                df2 = pandas.read_csv(filename2, nrows=nrows, skiprows=nrows * iter2 + 1, names=columns2)
+            iter2 = 0
+            iter1 += 1
+            df1 = pandas.read_csv(filename1, nrows=nrows, skiprows=nrows * iter1 + 1, names=columns1)
+            df2 = pandas.read_csv(filename2, nrows=nrows)
+    else:
+        print("Cannot join by given column name")
 
 
 def right_join(filename1, filename2, column_name, nrows=50):
@@ -93,10 +94,12 @@ joins = {
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser(description='Join records from two csv files.')
-    arg_parser.add_argument('strings', nargs=2, type=str, help='names of files to join')
+    arg_parser.add_argument('filesnames', nargs=2, type=str, help='names of files to join')
     arg_parser.add_argument('column_name', nargs='?', type=str, help='join condition')
     arg_parser.add_argument('join_type', nargs='?', type=str, default='inner',
                             choices=['left', 'inner', 'right'], help='type of join')
+    arg_parser.add_argument('nrows', nargs='?', type=int, default='50',
+                            help='number of rows to read from CSV file at once')
     args = arg_parser.parse_args()
 
-    joins[args.join_type](args.strings[0], args.strings[1], args.column_name, nrows=1)
+    joins[args.join_type](args.filesnames[0], args.filesnames[1], args.column_name, nrows=args.nrows)
